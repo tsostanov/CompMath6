@@ -3,7 +3,7 @@ from prettytable import PrettyTable
 from .runge_kutta_method import runge_kutta_method
 
 
-def milne_method(func, y0, t0, t1, h, e, exact_solution):
+def milne_method(func, y0, t0, t1, h, e, exact_solution, max_step_reductions=1000):
     results = runge_kutta_method(func, y0, t0, t1, h, e)
 
     if len(results) < 4:
@@ -24,12 +24,15 @@ def milne_method(func, y0, t0, t1, h, e, exact_solution):
     while len(y_list) < ((t1 - t0) / h):
         y_list.append(y_list[0])
 
+
     table = PrettyTable()
     table.title = "Метод Милна"
     table.field_names = ["t", "y", "R"]
     table.float_format = ".5"
 
     i = 3
+    step_reductions = 0
+
     while i < (len(y_list) - 1):
         y_pred = y_list[i - 3] + 4 * h * (
                 2 * func(t + (i - 2) * h, y_list[i - 2]) - func(t + (i - 1) * h, y_list[i - 1]) +
@@ -49,10 +52,15 @@ def milne_method(func, y0, t0, t1, h, e, exact_solution):
         R = np.abs(exact_solution(t + (i + 1) * h) - y_corr)
         if R > e:
             h /= 2
+            step_reductions += 1
             print("Шаг был уменьшен до", h)
-            i -= 1
-        table.add_row([f"{t + i * h:.5f}", f"{y_corr:.5f}", f"{R:.5f}"])
-        i += 1
+            if step_reductions > max_step_reductions:
+                print("Достигнуто максимальное количество уменьшений шага.")
+                break
+        else:
+            table.add_row([f"{t + (i + 1) * h:.5f}", f"{y_corr:.5f}", f"{R:.5f}"])
+            i += 1
+
 
     print(table)
 

@@ -2,10 +2,11 @@ import numpy as np
 from prettytable import PrettyTable
 
 
-def runge_kutta_method(func, y0, t0, t1, h, e):
+def runge_kutta_method(func, y0, t0, t1, h, e, max_step_reductions=1000):
     t = t0
     y = np.array(y0)
     results = [(t, y[0])]
+    step_reductions = 0
 
     table = PrettyTable()
     table.title = "Решение методом Рунге-Кутты"
@@ -38,7 +39,11 @@ def runge_kutta_method(func, y0, t0, t1, h, e):
             results.append((t, y[0]))
         else:
             h /= 2
+            step_reductions += 1
             print("Шаг был уменьшен до", h)
+            if step_reductions > max_step_reductions:
+                print("Достигнуто максимальное количество уменьшений шага.")
+                break
 
     print(table)
     return results
